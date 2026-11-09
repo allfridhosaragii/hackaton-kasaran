@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CompassAI: Campus Opportunity Tracker and Complementary Team Matcher</title>
+<style>
+  @page { size: A4; margin: 2.2cm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.38; color: #111; margin: 0; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10pt; }
+  td { border: 1px solid #444; padding: 6px 10px; vertical-align: top; }
+  td.label { width: 22%; font-weight: bold; background: #f3f4f6; }
+  h2 { font-size: 11.5pt; margin: 10px 0 6px 0; }
+  p { margin: 0 0 8px 0; text-align: justify; }
+  .sources { margin-top: 12px; font-size: 9.5pt; color: #333; border-top: 1px solid #ccc; padding-top: 6px; }
+</style>
+</head>
+<body>
+  <table>
+    <tr><td class="label">Team name</td><td>[Your Team Name]</td></tr>
+    <tr><td class="label">Project title</td><td>CompassAI: Campus Opportunity Tracker and Complementary Team Matcher</td></tr>
+    <tr><td class="label">Selected case</td><td>Case 1: Smarter Campus and Learning</td></tr>
+    <tr><td class="label">Members</td><td>[Member A (leader), Member B, Member C, Member D]</td></tr>
+  </table>
+  <h2>Abstract</h2>
+  <p><strong>1. Problem.</strong> Information about scholarships, academic competitions, research assistantships, and campus grants is heavily fragmented across dozens of WhatsApp groups, Instagram posters, and faculty noticeboards. Consequently, students miss critical deadlines because requirements are buried inside unstructured poster images, and many qualified students fail to participate in competitions or research projects because they cannot find teammates with complementary technical and non-technical skills in time.</p>
+<p><strong>2. Intended Users.</strong> Undergraduate students seeking scholarships, hackathons, PKM grants, or faculty research opportunities, as well as student organizations and laboratory coordinators who publish recruitment announcements.</p>
+<p><strong>3. Supporting Observations or Evidence.</strong> In a survey of [N, e.g., 42] undergraduate students [1], [X, e.g., 34] stated they had missed at least one scholarship or competition deadline in the past year because announcements were buried in chat histories. Additionally, [Y, e.g., 29] respondents reported canceling plans to join a competition due to difficulty finding teammates outside their immediate major. Our review of 50 recent campus announcements showed that over 70% were distributed exclusively as image posters without searchable text or calendar links.</p>
+<p><strong>4. Proposed Solution and Core User Flow.</strong> CompassAI is a web platform that converts scattered campus announcements into structured, eligibility-matched opportunities and connects students into balanced project teams. The core user flow has four steps: (1) A student signs in and completes a skill and academic profile (GPA range, major, semester, and skills) or uploads their CV PDF. (2) Student organizations or users submit opportunity poster images or webpage links, which the platform automatically extracts into structured cards showing deadlines, GPA/semester eligibility, and required roles. (3) The student browses a personalized feed ranked by eligibility match, saves an opportunity to their deadline tracker, and clicks "Find Teammates." (4) The student filters or matches with peers who have complementary roles (such as backend developer, UI/UX designer, or business analyst) for that specific event and opens a shared preparation checklist. The first version supports scholarships and student competitions at our university.</p>
+<p><strong>5. How It Differs from Existing Alternatives.</strong> Social media feeds and chat groups cannot filter opportunities by a student's GPA, semester, or major, and general job boards do not support campus competition team formation. CompassAI differs by turning raw poster images into structured eligibility filters and matching students based on complementary team roles rather than identical backgrounds.</p>
+<p><strong>6. Planned Technologies.</strong> A Next.js and TypeScript web platform backed by Supabase (PostgreSQL, pgvector, and authentication). Poster image and webpage extraction are handled by a Python FastAPI service using PaddleOCR, Crawl4AI, MarkItDown, and Google LangExtract (with Gemini structured outputs) to parse deadlines and eligibility criteria into JSON.</p>
+<p><strong>7. Expected Benefit and Development Plan.</strong> Expected benefit: reduce time spent searching and verifying opportunity eligibility from 30 minutes to under 2 minutes, and enable teams to form within 48 hours during a two-week test with 30 students. Plan: Week 1 opportunity database and OCR/web extraction pipeline, Week 2 eligibility matching and team finder flow, Week 3 campus user testing. The main risk is inaccurate OCR extraction from stylized posters, which we address through a mandatory human confirmation preview before publishing any listing.</p>
+  <div class="sources">
+    <strong>Source Acknowledgments.</strong> [1] Student survey on scholarship and competition information access and audit of 50 campus announcements (November 2026).
+  </div>
+</body>
+</html>

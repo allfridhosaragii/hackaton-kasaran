@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyPulse: Collaborative Lecture-to-Active-Recall Workspace</title>
+<style>
+  @page { size: A4; margin: 2.2cm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.38; color: #111; margin: 0; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10pt; }
+  td { border: 1px solid #444; padding: 6px 10px; vertical-align: top; }
+  td.label { width: 22%; font-weight: bold; background: #f3f4f6; }
+  h2 { font-size: 11.5pt; margin: 10px 0 6px 0; }
+  p { margin: 0 0 8px 0; text-align: justify; }
+  .sources { margin-top: 12px; font-size: 9.5pt; color: #333; border-top: 1px solid #ccc; padding-top: 6px; }
+</style>
+</head>
+<body>
+  <table>
+    <tr><td class="label">Team name</td><td>[Your Team Name]</td></tr>
+    <tr><td class="label">Project title</td><td>StudyPulse: Collaborative Lecture-to-Active-Recall Workspace</td></tr>
+    <tr><td class="label">Selected case</td><td>Case 1: Smarter Campus and Learning</td></tr>
+    <tr><td class="label">Members</td><td>[Member A (leader), Member B, Member C, Member D]</td></tr>
+  </table>
+  <h2>Abstract</h2>
+  <p><strong>1. Problem.</strong> Undergraduate students taking quantitative and theory-heavy courses struggle to consolidate fragmented learning materials across dense PDF lecture slides, handwritten whiteboard derivations, and fast-paced spoken explanations. When studying for exams individually or in small groups, students spend hours passively re-reading static files rather than engaging in structured active recall, while deaf or hard-of-hearing students face additional barriers following uncaptioned lectures.</p>
+<p><strong>2. Intended Users.</strong> First- and second-year undergraduate engineering and computer science students studying for midterm and final examinations in study groups of 3 to 5 peers, as well as peer tutors who lead weekly course review sessions.</p>
+<p><strong>3. Supporting Observations or Evidence.</strong> In a preliminary observation and survey of [N, e.g., 35] undergraduate students at our campus [1], [X, e.g., 28] reported that lecture slides uploaded to the campus LMS lack the detailed explanations spoken in class, and students estimated spending an average of [Y, e.g., 2.5] hours per course manually rewriting notes before exams. Furthermore, we observed that group study notes shared via chat apps quickly become outdated and unindexed.</p>
+<p><strong>4. Proposed Solution and Core User Flow.</strong> StudyPulse is a collaborative web workspace that transforms raw course materials into synchronized notes, visual concept maps, and spaced-repetition quizzes. The core user flow has four steps: (1) A student signs in and creates a shared course workspace by uploading lecture PDFs, whiteboard photos, or class audio recordings. (2) The system parses documents and aligns audio timestamps to specific slide sections inside a real-time collaborative block editor where group members co-edit notes simultaneously. (3) With one click, students generate an interactive concept mindmap and a deck of review flashcards from their verified notes. (4) Students complete a 10-minute daily active-recall quiz scheduled by a spaced-repetition algorithm, while a group readiness dashboard highlights weak topics for their next study session. The first version focuses on PDF/image slide parsing, collaborative note editing, and flashcard scheduling for two undergraduate courses.</p>
+<p><strong>5. How It Differs from Existing Alternatives.</strong> General note-taking apps (such as Notion or Google Docs) lack native LaTeX OCR, slide-aligned audio timestamps, and built-in spaced-repetition scheduling, whereas standalone flashcard tools (such as Anki) do not support real-time multiplayer note collaboration. StudyPulse unifies document extraction, live co-editing, and FSRS-based active recall in one browser workflow.</p>
+<p><strong>6. Planned Technologies.</strong> A responsive Next.js and TypeScript web application backed by Supabase (PostgreSQL, authentication, and real-time sync). Collaborative editing is powered by BlockNote and Yjs CRDTs, visual concept maps by Markmap, and review scheduling by ts-fsrs. A FastAPI Python service uses MarkItDown and LaTeX-OCR for document extraction, WhisperX for timestamped transcription, and the Google Gemini API strictly for grounded question generation from uploaded notes.</p>
+<p><strong>7. Expected Benefit and Development Plan.</strong> Expected benefit: reduce note-consolidation time by at least 50% and improve post-study quiz scores during a two-week trial with 20 students, measured via task completion logs and pre/post-quiz scores. Plan: Week 1 document parser and collaborative editor, Week 2 FSRS flashcard engine and mindmap view, Week 3 user testing and refinement. The main risk is OCR inaccuracy on low-resolution whiteboard photos, which we mitigate by allowing inline manual LaTeX editing before quiz generation.</p>
+  <div class="sources">
+    <strong>Source Acknowledgments.</strong> [1] Preliminary team survey and observation of undergraduate study habits (November 2026).
+  </div>
+</body>
+</html>

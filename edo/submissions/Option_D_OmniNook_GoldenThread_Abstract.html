@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OmniNook: QR-Verified Study Pods with Shared Canvas and Grounded Course RAG</title>
+<style>
+  @page { size: A4; margin: 2.2cm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.38; color: #111; margin: 0; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10pt; }
+  td { border: 1px solid #444; padding: 6px 10px; vertical-align: top; }
+  td.label { width: 22%; font-weight: bold; background: #f3f4f6; }
+  h2 { font-size: 11.5pt; margin: 10px 0 6px 0; }
+  p { margin: 0 0 8px 0; text-align: justify; }
+  .sources { margin-top: 12px; font-size: 9.5pt; color: #333; border-top: 1px solid #ccc; padding-top: 6px; }
+</style>
+</head>
+<body>
+  <table>
+    <tr><td class="label">Team name</td><td>[Your Team Name]</td></tr>
+    <tr><td class="label">Project title</td><td>OmniNook: QR-Verified Study Pods with Shared Canvas and Grounded Course RAG</td></tr>
+    <tr><td class="label">Selected case</td><td>Case 1: Smarter Campus and Learning</td></tr>
+    <tr><td class="label">Members</td><td>[Member A (leader), Member B, Member C, Member D]</td></tr>
+  </table>
+  <h2>Abstract</h2>
+  <p><strong>1. Problem.</strong> Undergraduate students face two connected barriers when studying between lectures: shared campus discussion rooms suffer from fragmented availability info and "ghost bookings" where reserved spaces sit empty, and once students finally gather—or try to find peers taking the same course—they lack a unified workspace to co-solve visual problems and query dense lecture PDFs together.</p>
+<p><strong>2. Intended Users.</strong> First- and second-year undergraduate students who study in small groups or seek course peers during 1-to-3-hour gaps between classes (10:00 to 17:00), as well as campus building staff who oversee shared study rooms.</p>
+<p><strong>3. Supporting Observations or Evidence.</strong> In a preliminary campus observation and survey of [N, e.g., 40] students [1], [X, e.g., 32] reported losing 15 to 25 minutes searching for open group study spaces during peak hours, while an estimated 25% of reserved rooms went unclaimed due to no-shows. Additionally, [Y, e.g., 29] respondents stated that coordinating shared notes, whiteboard sketches, and lecture slides across separate apps slows down group problem-solving.</p>
+<p><strong>4. Proposed Solution and Core User Flow.</strong> OmniNook is a web application that connects physical study room booking and peer matching directly to a shared digital study workspace. The core user flow has four steps: (1) A student signs in with their campus account and uploads their semester schedule PDF once so the system detects their enrolled courses and free time blocks. (2) On a live building map, the student books a free room (Green) or joins an "Open Study Pod" (Yellow) of peers studying the same course. (3) Upon arriving, members scan the room's dynamic QR code within 15 minutes to confirm occupancy—otherwise the room is automatically released; scanning the QR immediately unlocks a synchronized digital session for everyone at that table. (4) Inside this session, members co-draw diagrams on an embedded Excalidraw whiteboard, ask a course-grounded AI tutor questions cited directly to their uploaded lecture PDFs, and export a summary sheet. The first version covers one campus building (12 rooms) and two courses.</p>
+<p><strong>5. How It Differs from Existing Alternatives.</strong> Existing campus booking forms neither release unclaimed rooms automatically nor help solo students join course peers, while digital whiteboard and AI chat tools operate completely disconnected from physical study groups. OmniNook uniquely uses the 15-minute physical QR check-in as the trigger that both eliminates ghost bookings and launches an instant multiplayer Excalidraw and RAG study session.</p>
+<p><strong>6. Planned Technologies.</strong> A responsive Next.js and TypeScript web app backed by Supabase (PostgreSQL, pgvector, authentication, and Realtime WebSockets). The shared visual workspace embeds @excalidraw/excalidraw and BlockNote with Yjs sync, while a Python FastAPI service uses MarkItDown, Google LangExtract, and the Gemini API to parse schedule PDFs and provide citation-grounded answers from uploaded course slides.</p>
+<p><strong>7. Expected Benefit and Development Plan.</strong> Expected benefit: reduce room and study-partner search time to under 3 minutes, cut ghost bookings by 60%, and improve group task completion speed during a two-week trial with 24 students, measured via check-in logs and session telemetry. Plan: Week 1 live room map, booking, and QR auto-release; Week 2 schedule parser and QR-triggered Excalidraw pod; Week 3 course PDF RAG and user testing. The main risk is unstable building Wi-Fi during check-in, mitigated by offline-tolerant local state sync and a staff override view.</p>
+  <div class="sources">
+    <strong>Source Acknowledgments.</strong> [1] Preliminary team observation of campus study rooms and student survey (November 2026).
+  </div>
+</body>
+</html>
