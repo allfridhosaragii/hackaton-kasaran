@@ -20,7 +20,7 @@ academiaflow_baton_abstract = {
         ),
         (
             "3. Supporting Observations or Evidence",
-            "Evidence comes from our team's experience at Telkom University Surabaya and UNESA alongside an interview with an ITB student [1]. The ITB student reported that free-riding is very common when groups are not self-selected, that contribution is recorded on manual sheets, and that every year some theses stall because busy advisors remain unresponsive; asked to rank four campus problems, they chose stalled thesis supervision as most urgent. At UNESA, our teammate documented students commuting between two campuses for weekly logbook signatures."
+            "Evidence comes from our team's experience at Telkom University Surabaya and UNESA and an interview with an ITB student [1]. The ITB student reported that free-riding is very common when groups are not self-selected, that contribution is recorded on manual sheets, and that every year some theses stall because busy advisors remain unresponsive; asked to rank four campus problems, they chose stalled supervision as most urgent. At UNESA, our teammate documented students commuting between two campuses for weekly logbook signatures."
         ),
         (
             "4. Proposed Solution and Core User Flow",
@@ -28,7 +28,7 @@ academiaflow_baton_abstract = {
         ),
         (
             "5. How It Differs from Existing Alternatives",
-            "Campus portals (SIX, iGracias, SIAKAD) and Google Classroom record final submissions and grades, not who holds the work in between. Trello or Notion boards track tasks but lack accepted handovers, lecturer-facing contribution evidence, zero-login advisor approval links, and coordinator escalation. AcademiaFlow powers both student-to-student and student-to-advisor handoffs with one engine and needs no access to university databases."
+            "Campus portals (SIX, iGracias, SIAKAD) and Google Classroom record submissions and grades, not who holds the work in between. Trello or Notion boards track tasks but lack accepted handovers, lecturer-facing contribution evidence, zero-login advisor approval links, and coordinator escalation. AcademiaFlow powers both student-to-student and student-to-advisor handoffs with one engine and needs no access to university databases."
         ),
         (
             "6. Planned Technologies",
@@ -36,7 +36,7 @@ academiaflow_baton_abstract = {
         ),
         (
             "7. Expected Benefit and Development Plan",
-            "We expect fewer silent stalls, fairer individual grading, and faster advisor feedback, measured by handover delay between members, lecturer time to assess contribution, and days a draft waits for review. Plan: Week 1, baton engine and group-project flow; Week 2, thesis flow, advisor links, and escalation; Week 3, pilot with student groups and a lecturer. Risk of low lecturer adoption is mitigated via zero-login approval links and PDF exports."
+            "We expect fewer silent stalls, fairer individual grading, and faster advisor feedback, measured by handover delay between members, lecturer grading time, and days a draft waits for review. Plan: Week 1, baton engine and group-project flow; Week 2, thesis flow, advisor links, and escalation; Week 3, pilot with student groups and a lecturer. Low lecturer adoption risk is mitigated via zero-login links and PDF exports."
         )
     ],
     "sources": "[1] Pray First Team, Academic workflow observations at Telkom University Surabaya and Universitas Negeri Surabaya (UNESA), and field interview with an Institut Teknologi Bandung (ITB) undergraduate (November 2026)."
