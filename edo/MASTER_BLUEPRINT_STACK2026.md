@@ -296,7 +296,7 @@ Senjata utama untuk membangun aplikasi yang terlihat sekelas startup Silicon Val
 ### 🌟 KONSEP UTAMA PILIHAN TIM `PRAY FIRST`: **`AcademiaFlow` — Unified Student Lifecycle Workspace (Semester 1 s.d. Lulus)**
 * **Team Name:** `Pray First`
 * **Members:**
-  1. **Allfridhoo Prima Anjaynata Saragi (Leader)** — *Product Architect, Supabase Database, Modul 1 (Smart KRS & Circle Sync) & Modul 3 (MoU 20-SKS Internship & Alumni Hub)*
+  1. **Allfridho Prima Anjaynata Saragi (Leader)** — *Product Architect, Supabase Database, Modul 1 (Smart KRS & Circle Sync) & Modul 3 (MoU 20-SKS Internship & Alumni Hub)*
   2. **Mikhael Yuli Ananda Elvan Permana** — *Realtime Concurrency, Modul 2B (Accountable Groupwork Handover) & Modul 4 (Semantic Dosbing Matching, In-App Consultation Ticket, 1-Click Logbook Approval & 21-Day Thesis SLA Rebalancer)*
   3. **Nathanael Christian Putra** — *AI Learning & Collaborative Workspace Engineer, Modul 2A (StudyPulse / KuliahPaham: Whisper Audio + Slide Sync, Socratic RAG, FSRS Exam Quiz & BlockNote/Yjs Notes)*
 

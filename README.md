@@ -3,7 +3,7 @@
 
 * **Team Name:** `Pray First`
 * **Members:**
-  1. **Allfridhoo Prima Anjaynata Saragi** *(Team Leader — Telkom University Surabaya)*
+  1. **Allfridho Prima Anjaynata Saragi** *(Team Leader — Telkom University Surabaya)*
   2. **Mikhael Yuli Ananda Elvan Permana** *(Member — Universitas Negeri Surabaya / UNESA)*
   3. **Nathanael Christian Putra** *(Member — Telkom University Surabaya)*
 

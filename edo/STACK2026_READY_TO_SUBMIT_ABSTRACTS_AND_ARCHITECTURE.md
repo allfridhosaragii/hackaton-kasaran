@@ -23,7 +23,7 @@ Dokumen ini adalah kelanjutan dari [MASTER_BLUEPRINT_STACK2026.md](file:///p:/Ha
 **Team name:** `Pray First`
 **Project title:** `AcademiaFlow: Unified Student Lifecycle Workspace for Course Planning, Lecture Mastery, Accountable Groupwork, Internships, and Thesis SLA Tracking`
 **Selected case:** `Case 1: Smarter Campus and Learning`
-**Members:** `Allfridhoo Prima Anjaynata Saragi (Leader), Mikhael Yuli Ananda Elvan Permana, Nathanael Christian Putra`
+**Members:** `Allfridho Prima Anjaynata Saragi (Leader), Mikhael Yuli Ananda Elvan Permana, Nathanael Christian Putra`
 
 **Abstract**
 
