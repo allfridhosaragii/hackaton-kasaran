@@ -1,11 +1,12 @@
 -- ============================================================================
 -- ACADEMIAFLOW ("1 PORTAL FOR EVERYTHING") — SUPABASE POSTGRESQL + PGVECTOR SCHEMA
 -- STACK 2026 by GDGoC ITB (Case 1: Smarter Campus and Learning)
--- Covers all 4 Student Lifecycle Modules:
---   Module 1: Smart KRS Planner, Circle Class Sync & Course/Practicum Preview
---   Module 2: Accountable Groupwork Engine, Relay Handover & Anti-Free-Rider
---   Module 3: Adaptive Opportunity Hub (Sem 5-7), MoU SKS Simulator, TAK & Alumni Insider
---   Module 4: Thesis (TA 1 & 2) 21-Day SLA Tracker & Smart Advisor Rebalancing
+-- Unified Team Blueprint (Edo + Mike + Cris + Field Validation from ITB, Telkom, UNESA):
+--   Module 1 (Edo + Mike + ITB): Smart KRS Planner, Circle Class Sync, Realtime Quota & Course Preview
+--   Module 2A (Cris + Mike): StudyPulse Lecture Mastery (Audio + Slide -> Transcript, Socratic RAG, FSRS Quiz, Shared Notes)
+--   Module 2B (Edo + ITB): Accountable Groupwork Engine, Relay Handover, Digital Contribution Logbook & Escalation
+--   Module 3 (Edo + ITB): Adaptive Opportunity Hub (Sem 5-7), MoU 20-SKS Simulator, TAK & Alumni Insider
+--   Module 4 (Edo + Mike + ITB #1 Priority): Thesis 21-Day SLA, Transparent Quota, In-App Consultation Ticket, 1-Click Approval & Smart Rebalancing
 -- ============================================================================
 
 -- 1. Enable Required Extensions
@@ -13,16 +14,16 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- ============================================================================
--- CORE USER PROFILES & TAK/SKKM TRACKER
+-- CORE USER PROFILES, ADVISOR QUOTA & TAK/SKKM TRACKER
 -- ============================================================================
 CREATE TABLE public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
-    student_id TEXT UNIQUE,                        -- NIM (e.g. Telkom / ITB NIM)
+    student_id TEXT UNIQUE,                        -- NIM / NIP (ITB / Telkom / UNESA)
     role TEXT NOT NULL DEFAULT 'student'
         CHECK (role IN ('student', 'lecturer', 'kaprodi', 'alumni')),
     campus_name TEXT NOT NULL DEFAULT 'Telkom University Surabaya',
-    major TEXT NOT NULL,                           -- e.g. 'Informatika / STI'
+    major TEXT NOT NULL,                           -- e.g. 'Informatika / STI / Mikrobiologi'
     cohort_year INT NOT NULL DEFAULT 2024,
     origin_class TEXT DEFAULT 'IF-01',             -- Kelas asal sejak Semester 1 (untuk Circle Class Sync)
     semester INT NOT NULL DEFAULT 1,               -- Menentukan mode UI adaptif (Sem 1-4 vs Sem 5-7 Magang vs Sem 7-8 TA)
@@ -32,7 +33,10 @@ CREATE TABLE public.profiles (
     enrolled_courses TEXT[] DEFAULT '{}',          -- Hasil parse PDF KSM/KRS (1-Click Import)
     free_slots JSONB DEFAULT '[]'::jsonb,          -- Blok jam kosong mingguan hasil ekstraksi PDF KSM/KRS
     skills TEXT[] DEFAULT '{}',                    -- Skill otomatis dari mata kuliah + sertifikat
-    whatsapp_contact TEXT,                         -- Opsional (khusus Alumni / Mahasiswa yang opt-in)
+    research_expertise_embedding vector(768),      -- Khusus Dosen: Vektor keahlian riset untuk Semantic Dosbing Matching (Ide Mike)
+    advisor_quota_max INT DEFAULT 10,              -- Transparansi kuota bimbingan dosen (Solusi Masalah #9 ITB & UNESA)
+    advisor_quota_used INT DEFAULT 0,
+    whatsapp_contact TEXT,                         -- Opsional (khusus Alumni opt-in / Bot Notification)
     instagram_handle TEXT,
     linkedin_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -42,19 +46,19 @@ CREATE TABLE public.profiles (
 CREATE TABLE public.student_certificates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,                           -- e.g. 'Juara 1 Hackathon / Sertifikat AWS / Kepanitiaan'
-    category TEXT NOT NULL                         -- 'competition', 'organization', 'certification', 'seminar'
+    title TEXT NOT NULL,
+    category TEXT NOT NULL
         CHECK (category IN ('competition', 'organization', 'certification', 'seminar')),
     tak_points INT NOT NULL DEFAULT 5,
     issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    expires_at DATE,                               -- Untuk pengingat masa berlaku sertifikat kompetensi/bahasa
+    expires_at DATE,
     file_url TEXT,
     verified BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ============================================================================
--- MODULE 1: SMART KRS PLANNER, CIRCLE CLASS SYNC & COURSE PREVIEW
+-- MODULE 1: SMART KRS PLANNER, CIRCLE CLASS SYNC, REALTIME QUOTA & COURSE PREVIEW
 -- ============================================================================
 CREATE TABLE public.course_catalog (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -62,40 +66,85 @@ CREATE TABLE public.course_catalog (
     course_name TEXT NOT NULL,                     -- e.g. 'Algoritma & Struktur Data'
     credits_sks INT NOT NULL DEFAULT 3,
     target_semester INT NOT NULL DEFAULT 3,
-    is_mandatory BOOLEAN NOT NULL DEFAULT TRUE,    -- Matkul Wajib Paket vs Pilihan (Elective)
-    has_practicum BOOLEAN NOT NULL DEFAULT FALSE,  -- Info apakah ada Praktikum & jadwal rilis modulnya
-    practicum_details TEXT,                        -- e.g. 'Praktikum 2 minggu sekali di Lab Pemrograman, menggunakan bahasa C/Python'
+    is_mandatory BOOLEAN NOT NULL DEFAULT TRUE,    -- Matkul Wajib Paket vs Pilihan
+    has_practicum BOOLEAN NOT NULL DEFAULT FALSE,  -- Info Praktikum & jadwal modulnya
+    practicum_details TEXT,
     weekly_syllabus JSONB DEFAULT '[]'::jsonb,     -- Array 14 minggu: topik tiap minggu, bobot UTS/UAS/Tubes
-    lecturer_team JSONB DEFAULT '[]'::jsonb,       -- Daftar dosen pengampu + gaya mengajar (review santun dari kating)
-    parallel_classes JSONB DEFAULT '[]'::jsonb,    -- Daftar kelas paralel (01, 02, 03), jadwal hari/jam, dan kuota kursi
+    lecturer_team JSONB DEFAULT '[]'::jsonb,       -- Review kating yang spesifik & real (Validasi No. 3 ITB)
+    parallel_classes JSONB DEFAULT '[]'::jsonb,    -- Daftar kelas paralel (01, 02, 03) + kuota real-time via WebSocket (Solusi Anti-F5 Mike)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Simulasi KRS Bareng Circle (Cohort / Circle Class Sync)
 CREATE TABLE public.circle_krs_plans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     circle_name TEXT NOT NULL,                     -- e.g. 'Circle Kelas 01 Sem 1'
     creator_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    member_ids UUID[] NOT NULL DEFAULT '{}',       -- Daftar anggota circle yang ingin satu kelas paralel
+    member_ids UUID[] NOT NULL DEFAULT '{}',
     recommended_combination JSONB NOT NULL DEFAULT '[]'::jsonb, -- Plan A, Plan B, Plan C kelas paralel bebas bentrok
-    conflict_score INT NOT NULL DEFAULT 0,         -- 0 = Bebas bentrok 100%
+    conflict_score INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ============================================================================
--- MODULE 2: ACCOUNTABLE GROUPWORK ENGINE, RELAY HANDOVER & ANTI-FREE-RIDER
+-- MODULE 2A: STUDYPULSE / KULIAHPAHAM LECTURE MASTERY (IDE CRIS + SOCRATIC AI MIKE)
+-- ============================================================================
+CREATE TABLE public.lecture_study_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    course_code TEXT NOT NULL,
+    week_number INT NOT NULL DEFAULT 1,
+    session_title TEXT NOT NULL,                   -- e.g. 'Minggu 4: Tree & Graph Traversal'
+    slide_pdf_url TEXT,                            -- File PPT/PDF dosen yang di-drop mahasiswa
+    audio_recording_url TEXT,                      -- Rekaman suara HP saat dosen mengajar
+    slide_synced_transcript JSONB DEFAULT '[]'::jsonb, -- Hasil faster-whisper + markitdown yang sinkron nomor slide
+    simplified_explanation_md TEXT,                -- Penjelasan ulang bahasa mahasiswa + analogi Socratic bertahap
+    shared_class_notes_md TEXT DEFAULT '',         -- Catatan kolaboratif real-time sekelas (BlockNote + Yjs)
+    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Potongan Vektor Slide & Rekaman Dosen untuk Tanya-Jawab Anti-Halusinasi (RAGFlow / pgvector)
+CREATE TABLE public.lecture_knowledge_chunks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID NOT NULL REFERENCES public.lecture_study_sessions(id) ON DELETE CASCADE,
+    slide_number INT NOT NULL DEFAULT 1,
+    audio_timestamp_sec INT,
+    content TEXT NOT NULL,
+    embedding vector(768)
+);
+
+-- Kuis Latihan Ujian & Spaced Repetition (ts-fsrs — Penyelamat UTS/UAS Ide Cris)
+CREATE TABLE public.active_recall_flashcards (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    session_id UUID REFERENCES public.lecture_study_sessions(id) ON DELETE CASCADE,
+    course_code TEXT NOT NULL,
+    question TEXT NOT NULL,
+    socratic_hint TEXT,                            -- Petunjuk bertahap sebelum membuka jawaban (Ide Mike)
+    answer TEXT NOT NULL,
+    slide_citation TEXT,                           -- e.g. 'Slide 12 (Menit 34:10)'
+    due_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    stability NUMERIC NOT NULL DEFAULT 0,
+    difficulty NUMERIC NOT NULL DEFAULT 0,
+    reps INT NOT NULL DEFAULT 0,
+    lapses INT NOT NULL DEFAULT 0,
+    fsrs_state INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================================
+-- MODULE 2B: ACCOUNTABLE GROUPWORK ENGINE, RELAY HANDOVER & ANTI-FREE-RIDER (IDE EDO + ITB)
 -- ============================================================================
 CREATE TABLE public.group_projects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    course_code TEXT NOT NULL,                     -- e.g. 'IF2110'
-    project_title TEXT NOT NULL,                   -- e.g. 'Tugas Besar 1: Sistem Antrean Rumah Sakit'
+    course_code TEXT NOT NULL,
+    project_title TEXT NOT NULL,                   -- e.g. 'Tugas Besar 1 IF2110'
     lecturer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    group_name TEXT NOT NULL,                      -- e.g. 'Kelompok 04 - Kelas 01'
-    formation_mode TEXT NOT NULL DEFAULT 'student_choice'
+    group_name TEXT NOT NULL,
+    formation_mode TEXT NOT NULL DEFAULT 'lecturer_assigned'
         CHECK (formation_mode IN ('lecturer_assigned', 'student_choice', 'smart_balanced')),
     deadline TIMESTAMPTZ NOT NULL,
     intersected_free_slots JSONB DEFAULT '[]'::jsonb, -- Hasil Auto-Find Jam Kosong Bersama dari KRS anggota
-    shared_notes_markdown TEXT DEFAULT '',         -- Catatan kolaboratif (BlockNote / Yjs)
+    shared_notes_markdown TEXT DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -103,53 +152,49 @@ CREATE TABLE public.group_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES public.group_projects(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    role_in_group TEXT DEFAULT 'Member',           -- e.g. 'Project Lead', 'Backend', 'UI/UX', 'Dokumentasi'
-    contribution_percentage NUMERIC(5,2) DEFAULT 0.00, -- Dihitung otomatis dari bobot sub-tugas yang diselesaikan
+    role_in_group TEXT DEFAULT 'Member',
+    contribution_percentage NUMERIC(5,2) DEFAULT 0.00, -- Digitalisasi Lembar Kontribusi ITB secara otomatis!
     last_active_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(project_id, user_id)
 );
 
--- Sub-Tugas dengan Sistem Estafet (Relay Handover) & Bukti Kontribusi
 CREATE TABLE public.project_tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES public.group_projects(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,                           -- e.g. 'Bagian 1: Desain ERD & Skema Database'
+    title TEXT NOT NULL,
     description TEXT,
     assigned_to UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    depends_on_task_id UUID REFERENCES public.project_tasks(id) ON DELETE SET NULL, -- Task prasyarat sebelum task ini jalan
-    next_assignee_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,        -- Siapa yang otomatis dinotifikasi saat task ini selesai!
-    weight_points INT NOT NULL DEFAULT 25,         -- Bobot kontribusi untuk analitik dosen
+    depends_on_task_id UUID REFERENCES public.project_tasks(id) ON DELETE SET NULL,
+    next_assignee_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,        -- Penerima notifikasi estafet otomatis
+    weight_points INT NOT NULL DEFAULT 25,
     status TEXT NOT NULL DEFAULT 'todo'
         CHECK (status IN ('blocked', 'todo', 'in_progress', 'completed')),
-    evidence_link TEXT,                            -- Link commit Git / PR / file / screenshot bukti kerja
+    evidence_link TEXT,                            -- Bukti commit Git / PR / file kerja
     due_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Notifikasi Estafet Real-Time (Triggered via Supabase Realtime saat teman selesai)
 CREATE TABLE public.handover_notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES public.group_projects(id) ON DELETE CASCADE,
     from_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     to_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     completed_task_id UUID NOT NULL REFERENCES public.project_tasks(id) ON DELETE CASCADE,
-    next_task_id UUID REFERENCES public.project_tasks(id) ON DELETE SET NULL,
-    message TEXT NOT NULL,                         -- e.g. 'Budi telah menyelesaikan Desain ERD! Sekarang giliranmu mengerjakan API Endpoint.'
+    message TEXT NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Jalur Lapor / Eskalasi Resmi ke Dosen (Anti-Free-Rider & Bukti Log Objektif)
 CREATE TABLE public.lecturer_escalations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES public.group_projects(id) ON DELETE CASCADE,
     reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     reported_member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    reason_category TEXT NOT NULL                  -- 'unresponsive_48h', 'missed_deadline', 'zero_contribution'
+    reason_category TEXT NOT NULL
         CHECK (reason_category IN ('unresponsive_48h', 'missed_deadline', 'zero_contribution')),
     details TEXT NOT NULL,
-    system_activity_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb, -- Bukti otomatis dari log sistem (0 task selesai, lewat deadline)
+    system_activity_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb, -- Bukti objektif log kontribusi untuk Dosen
     status TEXT NOT NULL DEFAULT 'pending_review'
         CHECK (status IN ('pending_review', 'pinged_by_lecturer', 'grade_adjusted', 'resolved')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -160,33 +205,32 @@ CREATE TABLE public.lecturer_escalations (
 -- ============================================================================
 CREATE TABLE public.campus_opportunities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title TEXT NOT NULL,                           -- e.g. 'Software Engineer Intern - Telkom Indonesia (MoU Partner)'
-    organization_name TEXT NOT NULL,               -- e.g. 'PT Telkom Indonesia / Bank BCA / Djarum Foundation'
-    opportunity_type TEXT NOT NULL                 -- 'internship_mou', 'scholarship', 'competition', 'research'
+    title TEXT NOT NULL,
+    organization_name TEXT NOT NULL,
+    opportunity_type TEXT NOT NULL
         CHECK (opportunity_type IN ('internship_mou', 'scholarship', 'competition', 'research')),
-    is_campus_mou_partner BOOLEAN NOT NULL DEFAULT FALSE, -- True = Kerjasama resmi kampus (jaminan konversi SKS)
-    convertible_sks INT NOT NULL DEFAULT 0,        -- e.g. 20 SKS (MBKM / Geladi) atau 3 SKS (KP ITB)
-    convertible_courses TEXT[] DEFAULT '{}',       -- Daftar kode matkul yang otomatis terkonversi tanpa perlu tunggu dosen wali lama
-    min_semester INT NOT NULL DEFAULT 1,           -- Filter otomatis (misal Sem 5-7 untuk Magang)
+    is_campus_mou_partner BOOLEAN NOT NULL DEFAULT FALSE,
+    convertible_sks INT NOT NULL DEFAULT 0,        -- e.g. 20 SKS (MBKM/Geladi) atau KP
+    convertible_courses TEXT[] DEFAULT '{}',
+    min_semester INT NOT NULL DEFAULT 1,
     min_gpa NUMERIC(3,2) NOT NULL DEFAULT 0.00,
     eligible_majors TEXT[] DEFAULT '{}',
     deadline TIMESTAMPTZ NOT NULL,
-    source_poster_url TEXT,
+    source_poster_url TEXT,                        -- Poster dari Line Himpunan ITB / WA Angkatan yang diekstrak PaddleOCR
     application_link TEXT,
-    embedding vector(768),                         -- Untuk pencocokan semantik dengan CV/skill mahasiswa
+    embedding vector(768),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Jejaring Alumni Insider di Perusahaan Mitra (Untuk Tanya Jawab WA / IG / LinkedIn)
 CREATE TABLE public.alumni_company_insiders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    organization_name TEXT NOT NULL,               -- Nama perusahaan mitra
+    organization_name TEXT NOT NULL,
     alumni_name TEXT NOT NULL,
     graduation_year INT NOT NULL,
     major TEXT NOT NULL,
-    current_role TEXT NOT NULL,                    -- e.g. 'Cloud Engineer (Ex-Intern 2024)'
-    internship_tips TEXT,                          -- Tips singkat lolos seleksi di perusahaan tersebut
-    whatsapp_number TEXT,                          -- Kontak WA opt-in untuk tanya-tanya adik tingkat
+    current_role TEXT NOT NULL,
+    internship_tips TEXT,
+    whatsapp_number TEXT,
     instagram_handle TEXT,
     linkedin_url TEXT,
     is_available_for_qa BOOLEAN NOT NULL DEFAULT TRUE,
@@ -194,7 +238,8 @@ CREATE TABLE public.alumni_company_insiders (
 );
 
 -- ============================================================================
--- MODULE 4: THESIS (TA 1 & 2) 21-DAY SLA TRACKER & SMART ADVISOR REBALANCING
+-- MODULE 4: THESIS (TA 1 & 2) 21-DAY SLA, IN-APP CONSULTATION TICKET & REBALANCING
+-- (Menjawab Masalah #1 Paling Parah di ITB & Keluhan Birokrasi/WA UNESA)
 -- ============================================================================
 CREATE TABLE public.thesis_supervisions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -202,8 +247,10 @@ CREATE TABLE public.thesis_supervisions (
     primary_advisor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     backup_advisor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     thesis_title TEXT NOT NULL,
-    research_topic_tags TEXT[] NOT NULL DEFAULT '{}', -- e.g. ['Computer Vision', 'NLP', 'IoT', 'Cybersecurity']
+    research_topic_tags TEXT[] NOT NULL DEFAULT '{}',
+    topic_embedding vector(768),                   -- Untuk Semantic Matching Topik Mahasiswa vs Pakar Dosen (Ide Mike)
     current_chapter TEXT NOT NULL DEFAULT 'Bab 1 - Pendahuluan',
+    rubric_checklist JSONB DEFAULT '[]'::jsonb,    -- Rubrik evaluasi standar agar penilaian antardosen adil (Ide Mike)
     last_student_submission_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_advisor_feedback_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     sla_status TEXT NOT NULL DEFAULT 'on_track'
@@ -211,39 +258,39 @@ CREATE TABLE public.thesis_supervisions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Logbook Bimbingan & Revisi per Bab (Cadangan Aman Anti-Server Down)
-CREATE TABLE public.thesis_revision_logs (
+-- Sistem Tiket Konsultasi Terjadwal & 1-Click Approval Logbook (Menghilangkan Messaging Anxiety WA & Bolak-Balik Kampus — Ide Mike)
+CREATE TABLE public.thesis_consultation_tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     supervision_id UUID NOT NULL REFERENCES public.thesis_supervisions(id) ON DELETE CASCADE,
-    chapter_name TEXT NOT NULL,                    -- e.g. 'Bab 3 - Metodologi & Arsitektur Sistem'
+    chapter_name TEXT NOT NULL,
+    polite_template_message TEXT NOT NULL,         -- Pesan terstandarisasi sopan otomatis (bebas cemas etika WA)
     student_draft_url TEXT NOT NULL,
-    student_notes TEXT,
+    git_commit_evidence TEXT,
+    scheduled_slot TIMESTAMPTZ,                    -- Slot jadwal konsultasi ala Cal.com
     advisor_feedback TEXT,
-    status TEXT NOT NULL DEFAULT 'awaiting_review'
-        CHECK (status IN ('awaiting_review', 'revision_needed', 'approved')),
+    one_click_approval_status TEXT NOT NULL DEFAULT 'awaiting_review'
+        CHECK (one_click_approval_status IN ('awaiting_review', 'revision_needed', 'approved_signed')),
+    digital_signature_hash TEXT,                   -- Paraf digital resmi 1-klik (tanpa kejar dosen antar-kampus)
     submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     reviewed_at TIMESTAMPTZ
 );
 
--- Rekomendasi Oper/Rebalancing Dosen Pembimbing Otomatis untuk Kaprodi (Jika Lewat SLA 21 Hari)
 CREATE TABLE public.advisor_rebalance_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     supervision_id UUID NOT NULL REFERENCES public.thesis_supervisions(id) ON DELETE CASCADE,
     previous_advisor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     recommended_new_advisor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     days_unresponsive INT NOT NULL DEFAULT 21,
-    topic_match_score NUMERIC(5,2) NOT NULL DEFAULT 92.50, -- Kecocokan keahlian riset dosen pengganti
-    new_advisor_active_quota INT NOT NULL DEFAULT 4,       -- Sisa kuota bimbingan dosen pengganti
+    topic_match_score NUMERIC(5,2) NOT NULL DEFAULT 94.00,
+    new_advisor_available_quota INT NOT NULL DEFAULT 3,
     kaprodi_approval_status TEXT NOT NULL DEFAULT 'pending_kaprodi'
         CHECK (kaprodi_approval_status IN ('pending_kaprodi', 'approved_transferred', 'declined')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ============================================================================
--- AUTOMATED TRIGGERS & FUNCTIONS FOR REALTIME RELAY & SLA DETECTION
+-- AUTOMATED TRIGGERS FOR REALTIME RELAY HANDOVER & 21-DAY THESIS SLA
 -- ============================================================================
-
--- Function 1: Otomatis Kirim Notifikasi Estafet (Relay Handover) Saat Anggota Menyelesaikan Sub-Tugas
 CREATE OR REPLACE FUNCTION public.handle_task_completion_handover()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -253,12 +300,10 @@ BEGIN
     IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
         NEW.completed_at := NOW();
 
-        -- Buka kunci (unblock) sub-tugas berikutnya yang bergantung pada tugas ini
         UPDATE public.project_tasks
         SET status = 'todo'
         WHERE depends_on_task_id = NEW.id AND status = 'blocked';
 
-        -- Buat notifikasi otomatis ke anggota berikutnya
         IF NEW.next_assignee_id IS NOT NULL THEN
             INSERT INTO public.handover_notifications (
                 project_id, from_user_id, to_user_id, completed_task_id, message
@@ -267,7 +312,7 @@ BEGIN
                 NEW.assigned_to,
                 NEW.next_assignee_id,
                 NEW.id,
-                'Sub-tugas "' || NEW.title || '" telah diselesaikan! Sekarang giliran Anda melanjutkan bagian berikutnya.'
+                'Sub-tugas "' || NEW.title || '" telah selesai! Sekarang giliran Anda melanjutkan bagian berikutnya.'
             );
         END IF;
     END IF;
@@ -280,7 +325,6 @@ BEFORE UPDATE ON public.project_tasks
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_task_completion_handover();
 
--- Function 2: Deteksi Otomatis SLA 21 Hari Dosen Pembimbing Tidak Merespons
 CREATE OR REPLACE FUNCTION public.check_thesis_21d_sla()
 RETURNS INT
 LANGUAGE plpgsql
